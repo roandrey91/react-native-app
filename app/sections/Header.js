@@ -12,7 +12,7 @@ export class Header extends React.Component {
 
     toggleUser = ()=>{
         if (this.state.isLoggedIn) {
-            AsyncStorage.setItem('userLoggedIn', 'none', (err, result) => {
+            AsyncStorage.setItem('jwt_token', 'none', (err, result) => {
                 this.setState({
                     isLoggedIn: false,
                     loggedUser: false
@@ -27,12 +27,12 @@ export class Header extends React.Component {
     }
 
     componentDidMount(){
-        AsyncStorage.getItem('userLoggedIn', (err, result) => {
+        AsyncStorage.getItem('jwt_token', (err, result) => {
             if ( result==='none'){
                 console.log('NONE');
             }
             else if (result === null){
-                AsyncStorage.setItem('userLoggedIn', 'none' , (err, result) => {
+                AsyncStorage.setItem('jwt_token', 'none' , (err, result) => {
                     console.log('Set user to NONE');
                 })
             }

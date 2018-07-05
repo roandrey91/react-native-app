@@ -1,12 +1,16 @@
 import React from 'react';
-import { 
-    StyleSheet, 
-    Text, 
-    View, 
-    TextInput, 
-    TouchableHighlight, 
-    Alert, 
-    AsyncStorage } from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    View,
+    TextInput,
+    TouchableHighlight,
+    Alert,
+    AsyncStorage
+} from 'react-native';
+import axios from 'axios';
+
+export const LoginContext = React.createContext();
 
 export class Login extends React.Component {
     static navigationOptions = {
@@ -15,107 +19,102 @@ export class Login extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { 
+        this.state = {
             username: '',
-            passwrd: ''
+            password: '',
+            loggedIn: false
         };
     };
 
-    cancelLogin = ()=>{
+    cancelLogin = () => {
         Alert.alert('Login cancelled');
         this.props.navigation.navigate('HomeRT');
     };
 
-    loginUser = ()=>{
-        
-        if ( !this.state.username ){
+    loginUser = () => {
+
+        if (!this.state.username) {
             Alert.alert('Please enter a username')
         }
-        else if ( !this.state.passwrd ){
+        else if (!this.state.password) {
             Alert.alert('Please enter a password')
         }
         else {
-            AsyncStorage.getItem('userLoggedIn', (err, result) => {
 
-                if (result!=='none'){
-                    Alert.alert('Someone already logged on');
-                    this.props.navigation.navigate('HomeRT');
+            AsyncStorage.getItem('jwt_token', (err, result) => {
+
+                if (result !== 'none') {
+                    AsyncStorage.setItem('jwt_token', '', (err, result) => {
+                       
+                    });
                 }
-                else{
-                    
-                    AsyncStorage.getItem(this.state.username, (err, result) => {
 
-                        if (result!==null){
-
-                            if(result!==this.state.passwrd) {
-                                Alert.alert('Password incorrect')
-                            }
-                            else {
-                                AsyncStorage.setItem('userLoggedIn',this.state.username, (err, result) => {
+                    axios.post("http://localhost:8080/api/login", {
+                        username: this.state.username,
+                        password: this.state.password
+                    })
+                        .then((response) => {
+                                AsyncStorage.setItem('jwt_token', response.data.token, (err, result) => {
                                     Alert.alert(`${this.state.username} Logged in`);
                                     this.props.navigation.navigate('HomeRT');
                                 });
-                            }
-
-                        }
-                        else{
-                            Alert.alert(`No account for ${this.state.username}`);
-                        }
-                    })
-                }
-
-
+                                this.state.loggedIn = true;
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                            this.cancelLogin();
+                        });
+                
 
             })
 
-                
-        
-        
         }
 
     }
 
     render() {
         return (
+            <LoginContext.Provider value={this.state}>
             <View style={styles.container}>
                 <Text style={styles.heading}>Login</Text>
 
-                <TextInput 
-                    style={styles.inputs} 
-                    onChangeText={(text) => this.setState({username: text})}
+                <TextInput
+                    style={styles.inputs}
+                    onChangeText={(text) => this.setState({ username: text })}
                     value={this.state.username}
                 />
                 <Text style={styles.label}>Enter Username</Text>
 
-                <TextInput 
-                    style={styles.inputs} 
-                    onChangeText={(text) => this.setState({passwrd: text})}
-                    value={this.state.passwrd}
+                <TextInput
+                    style={styles.inputs}
+                    onChangeText={(text) => this.setState({ password: text })}
+                    value={this.state.password}
                     secureTextEntry={true}
                 />
                 <Text style={styles.label}>Enter Password</Text>
 
                 <TouchableHighlight onPress={this.loginUser} underlayColor='#31e981'>
-                    <Text style = {styles.buttons}>
+                    <Text style={styles.buttons}>
                         Login
-                    </Text>
+                            </Text>
                 </TouchableHighlight>
 
                 <TouchableHighlight onPress={this.cancelLogin} underlayColor='#31e981'>
-                    <Text style = {styles.buttons}>
+                    <Text style={styles.buttons}>
                         Cancel
-                    </Text>
+                            </Text>
                 </TouchableHighlight>
-                
+
             </View>
+            </LoginContext.Provider>
         );
     }
 
-    
+
 }
 
 const styles = StyleSheet.create({
-	container: {
+    container: {
         flex: 1,
         alignItems: 'center',
         paddingBottom: '45%',
@@ -125,16 +124,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         flex: 1
     },
-    inputs:{
+    inputs: {
         flex: 1,
         width: '80%',
         padding: 10
     },
-    buttons:{
+    buttons: {
         marginTop: 15,
         fontSize: 16
     },
-    labels:{
+    labels: {
         paddingBottom: 10
     }
 });

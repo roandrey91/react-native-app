@@ -7,6 +7,8 @@ import {
     TouchableHighlight, 
     Alert, 
     AsyncStorage } from 'react-native';
+import axios from 'axios';
+
 
 export class Register extends React.Component {
 
@@ -17,9 +19,11 @@ export class Register extends React.Component {
     constructor(props) {
         super(props);
         this.state = { 
-            username: '',
-            passwrd: '',
-            passwrdConfirm: ''
+            email: '',
+            password: '',
+            matchingPassword: '',
+            firstName: '',
+            lastName: ''
         };
     };
 
@@ -29,26 +33,32 @@ export class Register extends React.Component {
     };
 
     registerAccount = ()=>{
-        if ( !this.state.username ){
-            Alert.alert('Please enter a username')
+        if ( !this.state.email ){
+            Alert.alert('Please enter a email')
         }
-        else if (this.state.passwrd !== this.state.passwrdConfirm){
+        else if (this.state.password !== this.state.matchingPassword){
             Alert.alert('Passwords do not match')
         }
         else {
-            AsyncStorage.getItem(this.state.username, (err, result) => {
+            axios.post("http://localhost:8080/api/user/registration", {
                 
-                if (result!==null){
-                    Alert.alert(`${this.state.username} already exists`);
-                }
-                else{
-                    AsyncStorage.setItem(this.state.username,this.state.passwrd, (err, result) => {
-                        Alert.alert(`${this.state.username} account created`);
-                        this.props.navigation.navigate('HomeRT');
-                    });
-                }    
-            
-            });
+                 email: this.state.email,
+                 password: this.state.password,
+                 matchingPassword: this.state.matchingPassword,
+                 firstName: this.state.firstName,
+                 lastName: this.state.lastName
+                } 
+             ,)
+             .then((response) => {
+                AsyncStorage.setItem('jwt_token', response.data, (err, result) => {
+                    Alert.alert(`${this.state.email} account created`);
+                    this.props.navigation.navigate('HomeRT');
+                });
+             })
+             .catch((error) => {
+                 console.log(error);
+                 this.cancelRegister();
+             });  
         }
 
     }
@@ -60,26 +70,40 @@ export class Register extends React.Component {
                 
                 <TextInput 
                     style={styles.inputs} 
-                    onChangeText={(text) => this.setState({username: text})}
-                    value={this.state.username}
+                    onChangeText={(text) => this.setState({email: text})}
+                    value={this.state.email}
                 />
-                <Text style={styles.label}>Enter Username</Text>
+                <Text style={styles.label}>Enter Email</Text>
 
                 <TextInput 
                     style={styles.inputs} 
-                    onChangeText={(text) => this.setState({passwrd: text})}
-                    value={this.state.passwrd}
+                    onChangeText={(text) => this.setState({password: text})}
+                    value={this.state.password}
                     secureTextEntry={true}
                 />
                 <Text style={styles.label}>Enter Password</Text>
 
                 <TextInput 
                     style={styles.inputs} 
-                    onChangeText={(text) => this.setState({passwrdConfirm: text})}
-                    value={this.state.passwrdConfirm}
+                    onChangeText={(text) => this.setState({matchingPassword: text})}
+                    value={this.state.matchingPassword}
                     secureTextEntry={true}
                 />
                 <Text style={styles.label}>Confirm Password</Text>
+
+                 <TextInput 
+                    style={styles.inputs} 
+                    onChangeText={(text) => this.setState({firstName: text})}
+                    value={this.state.firstName}
+                />
+                <Text style={styles.label}>First Name</Text>
+
+                <TextInput 
+                    style={styles.inputs} 
+                    onChangeText={(text) => this.setState({lastName: text})}
+                    value={this.state.lastName}
+                />
+                <Text style={styles.label}>Last Name</Text>
 
                 <TouchableHighlight onPress={this.registerAccount} underlayColor='#31e981'>
                     <Text style = {styles.buttons}>
