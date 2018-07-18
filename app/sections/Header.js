@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, AsyncStorage, Alert  } from 'react-native';
+import parseJwt from '../sections/utils/jwt'
 
 export class Header extends React.Component {
     constructor(props) {
@@ -37,9 +38,11 @@ export class Header extends React.Component {
                 })
             }
             else {
+                const userInfo = parseJwt(result);
+                console.log(userInfo);
                 this.setState({
                     isLoggedIn: true,
-                    loggedUser: result
+                    loggedUser: userInfo.sub
                 });
             }
 
@@ -52,10 +55,8 @@ export class Header extends React.Component {
         let display = this.state.isLoggedIn ? this.state.loggedUser : this.props.message ;
         return (
             <View style={styles.headStyle}>
-                <Image 
-                    style={styles.logoStyle} 
-                    source={ require('./img/Globo_logo_REV.png')} 
-                />
+                <Text style={styles.foodie}> foodie </Text>        
+                
                 <Text 
                     style={styles.headText} 
                     onPress={this.toggleUser}>{display}
@@ -85,5 +86,10 @@ const styles = StyleSheet.create({
         flex: 1,
         width: undefined,
         height:undefined,
+    },
+    foodie: {
+        color: '#ffffff',
+        fontSize: 20,
+        flex: 1
     }
 });
